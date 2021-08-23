@@ -116,7 +116,7 @@ public class BookService {
             return new ResponseEntity<>(constructBookResponse(book), HttpStatus.OK);
         }
         // could not delete the book
-        throw new Exception("Unable To delete Book with Id '" + id + "'");
+        throw new RuntimeException("Unable To delete Book with Id '" + id + "'");
     }
 
     private Optional<List<BookEntity>> getBooksByTitle(String title) {

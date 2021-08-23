@@ -12,6 +12,7 @@ import com.example.RESTfulWebService.services.BookService;
 import com.example.RESTfulWebService.services.PatronService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -123,6 +125,21 @@ class RESTfulWebServiceApplicationTests {
     }
 
     @Test
+    public void countBooksByNameTest() {
+        String title = "Harry";
+        BookEntity book1 = new BookEntity(UUID.randomUUID(), "Harry Potter", "132456", 20.0, null);
+        BookEntity book2 = new BookEntity(UUID.randomUUID(), "Harry Potter 3", "132457", 50.0, UUID.randomUUID());
+        BookEntity book3 = new BookEntity(UUID.randomUUID(), "Harry Potter 2", "789724", 12.4, null);
+        List<BookEntity> bookEntities = Arrays.asList(book1, book2, book3);
+        when(bookRepository.findByTitleLikeIgnoreCase("%" + title + "%")).thenReturn(Optional.of(bookEntities));
+        ResponseEntity<List<BookResponseBody>> books = bookService.getBookByTitle(title);
+        Assertions.assertNotNull(books.getBody());
+        Assertions.assertFalse(books.getBody().isEmpty());
+        Assertions.assertEquals(3, books.getBody().size());
+        books.getBody().forEach(b -> Assertions.assertTrue(b.getTitle().contains(title)));
+    }
+
+    @Test
     public void countBorrowedBooksTest() {
         BookEntity book1 = new BookEntity(UUID.randomUUID(), "Harry Potter", "132456", 20.0, UUID.randomUUID());
         BookEntity book2 = new BookEntity(UUID.randomUUID(), "Harry Potter 3", "132457", 50.0, UUID.randomUUID());
@@ -136,6 +153,17 @@ class RESTfulWebServiceApplicationTests {
         for (long count : mapResponseEntity.getBody().values()) {
             Assertions.assertEquals(3, count);
         }
+    }
+
+    @Test
+    public void deleteBookByIdTest() throws Exception {
+        UUID id = UUID.randomUUID();
+        BookEntity book = new BookEntity(id, "Harry Potter", "132456", 20.0, null);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book)).thenReturn(Optional.empty());
+        ResponseEntity<BookResponseBody> bookResponse = bookService.deleteBookById(id.toString());
+        Assertions.assertNotNull(bookResponse);
+        Mockito.verify(bookRepository, times(2)).findById(id);
+        Mockito.verify(bookRepository, times(1)).deleteById(id);
     }
 
     @Test
@@ -215,6 +243,17 @@ class RESTfulWebServiceApplicationTests {
         for (long count : mapResponseEntity.getBody().values()) {
             Assertions.assertEquals(2, count);
         }
+    }
+
+    @Test
+    public void deletePatronByIdTest() throws Exception {
+        UUID id = UUID.randomUUID();
+        PatronEntity patron = new PatronEntity(id, "John Smith", "25-FEB-1998", "097-789-565");
+        when(patronRepository.findById(id)).thenReturn(Optional.of(patron)).thenReturn(Optional.empty());
+        ResponseEntity<PatronResponseBody> patronResponse = patronService.deletePatronById(id);
+        Assertions.assertNotNull(patronResponse);
+        Mockito.verify(patronRepository, times(2)).findById(id);
+        Mockito.verify(patronRepository, times(1)).deleteById(id);
     }
 
 	/*@Test

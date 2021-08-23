@@ -107,7 +107,7 @@ public class PatronService {
             return new ResponseEntity<>(constructPatronResponse(book), HttpStatus.OK);
         }
         // could not delete the book
-        throw new Exception("Unable To delete Book with Id '" + uuid + "'");
+        throw new RuntimeException("Unable To delete Book with Id '" + uuid + "'");
     }
 
     public ResponseEntity<Map<String, Long>> bookCountBorrowedByUser(UUID patronUUID) {
